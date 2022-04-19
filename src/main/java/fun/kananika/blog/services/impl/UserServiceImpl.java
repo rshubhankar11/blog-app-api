@@ -73,8 +73,18 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void deleteUser(Integer userId) {
 		log.debug("deleteUser() is started in UserServiceImpl");
-		userRepo.deleteById(userId);
+
+		User user = userRepo.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User", "userID", userId));
+		userRepo.delete(user);
 		log.debug("deleteUser() is ended in UserServiceImpl");
+	}
+
+	@Override
+	public void deleteByUserName(String name) {
+		this.userRepo.deleteByName(name);
+
+
 	}
 
 	private User dtoToEntity(UserDTO userDTO) {
@@ -88,4 +98,5 @@ public class UserServiceImpl implements UserService {
 		UserDTO userDTO = modelMapper.map(user, UserDTO.class);
 		return userDTO;
 	}
+
 }

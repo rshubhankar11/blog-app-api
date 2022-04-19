@@ -2,7 +2,10 @@ package fun.kananika.blog.contollers;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +31,7 @@ public class UserController {
 
 //	POST - create user
 	@PostMapping("/create")
-	public ResponseEntity<UserResponse> creatUser(@RequestBody UserDTO user) {
+	public ResponseEntity<UserResponse> creatUser( @Valid @RequestBody UserDTO user) {
 		UserDTO createdUser = this.userService.createUser(user);
 
 		UserResponse userResponse = new UserResponse();
@@ -42,19 +45,30 @@ public class UserController {
 
 //	PUT - update user 
 	@PutMapping("/updateUser/{userId}")
-	public ResponseEntity<UserResponse> updateUser(@RequestBody UserDTO user, @PathVariable Integer userId) {
+	public ResponseEntity<UserResponse> updateUser(@Valid @RequestBody UserDTO user, @PathVariable Integer userId) {
 
 		UserResponse userResponse = null;
-		try {
-			UserDTO updatedUser = this.userService.updateUser(user, userId);
+		UserDTO updatedUser = this.userService.updateUser(user, userId);
 
-			userResponse = new UserResponse();
-			userResponse.setMessage("User updated");
-			userResponse.setStatus("SUCCESS");
-			userResponse.setUsers(List.of(updatedUser));
+		userResponse = new UserResponse();
+		userResponse.setMessage("User updated");
+		userResponse.setStatus("SUCCESS");
+		userResponse.setUsers(List.of(updatedUser));
+		try {
+//			UserDTO updatedUser = this.userService.updateUser(user, userId);
+//
+//			userResponse = new UserResponse();
+//			userResponse.setMessage("User updated");
+//			userResponse.setStatus("SUCCESS");
+//			userResponse.setUsers(List.of(updatedUser));
 		} catch (Exception e) {
-			log.error("Error in updateUser() ...");
-			e.printStackTrace();
+			userResponse = new UserResponse();
+			userResponse.setMessage("User Id is not valid");
+			userResponse.setStatus("ERROR");
+			log.error("Error in updateUser() ...For User{}",e,userId);
+			return new ResponseEntity<>(
+			          userResponse, 
+			          HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		return ResponseEntity.ok(userResponse);
@@ -66,6 +80,28 @@ public class UserController {
 	public ResponseEntity<UserResponse> deleteUser(@PathVariable Integer userId) {
 
 		this.userService.deleteUser(userId);
+
+		UserResponse userResponse = null;
+		try {
+			userResponse = new UserResponse();
+			userResponse.setMessage("User Deleted");
+			userResponse.setStatus("SUCCESS");
+		} catch (Exception e) {
+			userResponse = new UserResponse();
+			userResponse.setMessage("User Id is not valid");
+			userResponse.setStatus("ERROR");
+			log.error("Excepting occour in get user by id{} ",e,userId);
+			return new ResponseEntity<>(
+			          userResponse, 
+			          HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		return ResponseEntity.ok(userResponse);
+	}
+	@DeleteMapping("/deleteUserName/{name}")
+	public ResponseEntity<UserResponse> deleteUser(@PathVariable String name) {
+
+		this.userService.deleteByUserName(name);
 
 		UserResponse userResponse = new UserResponse();
 		userResponse.setMessage("User Deleted");
@@ -92,18 +128,30 @@ public class UserController {
 	public ResponseEntity<UserResponse> userById(@PathVariable Integer userId) {
 
 		UserResponse userResponse = null;
-		try {
-			UserDTO userById = this.userService.getUserById(userId);
+		UserDTO userById = this.userService.getUserById(userId);
 
-			userResponse = new UserResponse();
-			userResponse.setMessage("All user fatched");
-			userResponse.setStatus("SUCCESS");
-			userResponse.setUsers(List.of(userById));
+		userResponse = new UserResponse();
+		userResponse.setMessage("All user fatched");
+		userResponse.setStatus("SUCCESS");
+		userResponse.setUsers(List.of(userById));
+
+		try {
+//			UserDTO userById = this.userService.getUserById(userId);
+//
+//			userResponse = new UserResponse();
+//			userResponse.setMessage("All user fatched");
+//			userResponse.setStatus("SUCCESS");
+//			userResponse.setUsers(List.of(userById));
 
 		} catch (Exception e) {
-			log.error("Excepting occour in get user by id ");
+			userResponse = new UserResponse();
+			userResponse.setMessage("User Id is not valid");
+			userResponse.setStatus("ERROR");
+			log.error("Excepting occour in get user by id{} ",e,userId);
+			return new ResponseEntity<>(
+			          userResponse, 
+			          HttpStatus.INTERNAL_SERVER_ERROR);
 
-			e.printStackTrace();
 		}
 
 		return ResponseEntity.ok(userResponse);
